@@ -502,3 +502,65 @@ footer p {
     font-size: .75rem;
   }
 }
+
+/* =====================================
+   Ver.2.0 入力操作改善
+   ===================================== */
+
+/* 数値入力欄とボタンを縦に配置 */
+.number-control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* ±ボタンを数値の下に並べる */
+.step-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.step-button {
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 0;
+  border: 1px solid #c5d2de;
+  border-radius: 7px;
+  background: #eef3f7;
+  color: #244863;
+  font-size: 1.15rem;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.step-button:active {
+  background: #c9deed;
+}
+
+/* 金額は同行右側の中央に表示 */
+.entry-row .amount {
+  align-self: center;
+  text-align: right;
+}
+
+/* スマートフォンでの操作 */
+@media (max-width: 520px) {
+  .step-buttons {
+    gap: 4px;
+  }
+
+  .step-button {
+    min-height: 38px;
+    padding: 5px 0;
+  }
+
+  .entry-row {
+    align-items: center;
+  }
+
+  .entry-row .amount {
+    font-size: .85rem;
+  }
+}

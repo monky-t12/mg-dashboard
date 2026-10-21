@@ -2,22 +2,20 @@
 "use strict";
 
 // ======================================
-// MG Dashboard Ver.1.9
+// MG Dashboard Ver.2.0
 // ======================================
 
-const STORAGE_KEY = "mg-dashboard-v1.9";
+const STORAGE_KEY = "mg-dashboard-v2.0";
 
-// 初期データ
+// 初期値
 const initial = () => ({
   buys: [
-    { id: 1, q: "10", p: "12" },
-    { id: 2, q: "10", p: "14" }
+    { id: 1, q: "2", p: "13" }
   ],
   sells: [
-    { id: 1, q: "8", p: "30" },
-    { id: 2, q: "4", p: "28" }
+    { id: 2, q: "2", p: "30" }
   ],
-  fixed: "240",
+  fixed: "150",
   goal: "50"
 });
 
@@ -26,7 +24,10 @@ let nextId = 3;
 
 const $ = id => document.getElementById(id);
 
-// 数値チェック
+// ======================================
+// 共通処理
+// ======================================
+
 const number = x =>
   x !== "" &&
   x !== null &&
@@ -43,11 +44,11 @@ const signedNumber = x =>
     : null;
 
 const rowValid = r =>
+  r != null &&
   number(r.q) !== null &&
   Number.isInteger(number(r.q)) &&
   number(r.p) !== null;
 
-// 合計計算
 const sumQ = rows =>
   rows.reduce((n, r) => n + Number(r.q), 0);
 
@@ -57,7 +58,6 @@ const sumA = rows =>
     0
   );
 
-// 端数処理
 const round1 = n =>
   Math.round((n + Number.EPSILON) * 10) / 10;
 
@@ -67,7 +67,6 @@ const round0 = n =>
 const ceilSafe = n =>
   Math.ceil(n - 1e-9);
 
-// 表示形式
 const fmt = n =>
   n === null
     ? "—"
@@ -97,7 +96,7 @@ function calculate(s) {
   const ba = buyValid ? sumA(s.buys) : null;
   const pq = sellValid ? sumA(s.sells) : null;
 
-  // P：実際の売上高 ÷ 販売数量
+  // P：実売上合計 ÷ 販売Q
   const P = sq > 0
     ? round1(pq / sq)
     : null;
@@ -107,18 +106,17 @@ function calculate(s) {
     ? round1(ba / bq + 2)
     : null;
 
-  // M：単位当たり付加価値
+  // M：P − V
   const M = P !== null && V !== null
     ? round1(P - V)
     : null;
 
-  // VQ：小数第1位のV × 販売数量
-  // 整数に四捨五入
+  // VQ：V × 販売Q（整数）
   const vq = V !== null && sq !== null
     ? round0(V * sq)
     : null;
 
-  // PQは実際の売上合計を使用
+  // PQは実際の販売金額合計
   const mq = pq !== null && vq !== null
     ? pq - vq
     : null;
@@ -126,7 +124,6 @@ function calculate(s) {
   const F = number(s.fixed);
   const goal = signedNumber(s.goal);
 
-  // 利益
   const G = mq !== null && F !== null
     ? mq - F
     : null;
@@ -136,16 +133,15 @@ function calculate(s) {
     ? ceilSafe(F / M)
     : null;
 
-  // 目標達成に必要な累計販売数量
+  // 目標達成Q
   const qt =
     M !== null &&
     M > 0 &&
     F !== null &&
     goal !== null
-      ? ceilSafe((F + goal) / M)
+      ? Math.max(0, ceilSafe((F + goal) / M))
       : null;
 
-  // 現在Qとの差
   const q0Left =
     q0 !== null && sq !== null
       ? Math.max(0, q0 - sq)
@@ -166,7 +162,7 @@ function calculate(s) {
 }
 
 // ======================================
-// ブラウザ内保存
+// 自動保存・読込
 // ======================================
 
 function save() {
@@ -222,12 +218,93 @@ function load() {
       ...s.sells.map(r => r.id)
     ) + 1;
   } catch (e) {
-    // 保存データが壊れていれば初期値を使用
+    // 読込に失敗した場合は初期値を使用
   }
 }
 
 // ======================================
-// 入力明細の作成
+// 入力コントロール作成
+// ======================================
+
+function createNumberControl(kind, row, field) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "number-control";
+
+  const input = document.createElement("input");
+
+  input.type = "number";
+  input.min = "0";
+  input.step = field === "q" ? "1" : "any";
+  input.inputMode =
+    field === "q" ? "numeric" : "decimal";
+
+  input.value = row[field];
+
+  input.setAttribute(
+    "aria-label",
+    `${kind === "buys" ? "材料購入" : "販売"} ${
+      field === "q" ? "数量" : "単価"
+    }`
+  );
+
+  // 直接入力時
+  input.addEventListener("input", () => {
+    row[field] = input.value;
+
+    const value = number(input.value);
+
+    const invalid =
+      value === null ||
+      (field === "q" && !Number.isInteger(value));
+
+    input.classList.toggle("invalid", invalid);
+
+    refresh();
+  });
+
+  wrapper.append(input);
+
+  // − / ＋ ボタン
+  const buttons = document.createElement("div");
+  buttons.className = "step-buttons";
+
+  for (const step of [-1, 1]) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "step-button";
+    button.textContent = step < 0 ? "−" : "＋";
+
+    button.setAttribute(
+      "aria-label",
+      `${field === "q" ? "数量" : "単価"}を${
+        step < 0 ? "減らす" : "増やす"
+      }`
+    );
+
+    button.addEventListener("click", () => {
+      const current = number(row[field]) ?? 0;
+
+      // 数量は整数、単価は1円刻み
+      const result = Math.max(0, current + step);
+
+      row[field] = String(result);
+      input.value = row[field];
+
+      input.classList.remove("invalid");
+      refresh();
+    });
+
+    buttons.append(button);
+  }
+
+  wrapper.append(buttons);
+
+  return wrapper;
+}
+
+// ======================================
+// 明細行の作成
 // ======================================
 
 function rowList(kind) {
@@ -237,58 +314,34 @@ function rowList(kind) {
 
   target.replaceChildren();
 
-  state[kind].forEach(r => {
+  state[kind].forEach(row => {
     const div = document.createElement("div");
     div.className = "entry-row";
 
-    for (const field of ["q", "p"]) {
-      const input = document.createElement("input");
+    // 数量
+    div.append(
+      createNumberControl(kind, row, "q")
+    );
 
-      input.type = "number";
-      input.min = "0";
-      input.step = field === "q" ? "1" : "any";
-      input.inputMode =
-        field === "q" ? "numeric" : "decimal";
+    // 単価
+    div.append(
+      createNumberControl(kind, row, "p")
+    );
 
-      input.value = r[field];
-
-      input.setAttribute(
-        "aria-label",
-        `${kind === "buys" ? "材料購入" : "販売"}${
-          field === "q" ? "数量" : "単価"
-        }`
-      );
-
-      input.addEventListener("input", () => {
-        r[field] = input.value;
-
-        const invalid =
-          number(input.value) === null ||
-          (
-            field === "q" &&
-            !Number.isInteger(number(input.value))
-          );
-
-        input.classList.toggle("invalid", invalid);
-        refresh();
-      });
-
-      div.append(input);
-    }
-
-    // 明細金額
+    // 同行右側に金額表示
     const money = document.createElement("span");
     money.className = "amount";
-    money.dataset.amount = String(r.id);
+    money.dataset.amount = String(row.id);
 
-    money.textContent = rowValid(r)
-      ? fmt(Number(r.q) * Number(r.p))
+    money.textContent = rowValid(row)
+      ? fmt(Number(row.q) * Number(row.p))
       : "—";
 
     div.append(money);
 
     // 削除ボタン
     const del = document.createElement("button");
+
     del.type = "button";
     del.className = "remove";
     del.textContent = "×";
@@ -299,7 +352,7 @@ function rowList(kind) {
 
     del.addEventListener("click", () => {
       state[kind] = state[kind].filter(
-        x => x.id !== r.id
+        x => x.id !== row.id
       );
 
       renderRows();
@@ -323,24 +376,24 @@ function renderRows() {
 function refresh() {
   const c = calculate(state);
 
-  // 明細ごとの金額更新
+  // 明細ごとの金額
   for (const kind of ["buys", "sells"]) {
     const list = $(
       kind === "buys" ? "buy-rows" : "sell-rows"
     );
 
-    [...list.querySelectorAll(".amount")].forEach(el => {
-      const r = state[kind].find(
-        x => String(x.id) === el.dataset.amount
+    list.querySelectorAll(".amount").forEach(el => {
+      const row = state[kind].find(
+        r => String(r.id) === el.dataset.amount
       );
 
-      el.textContent = rowValid(r)
-        ? fmt(Number(r.q) * Number(r.p))
+      el.textContent = rowValid(row)
+        ? fmt(Number(row.q) * Number(row.p))
         : "—";
     });
   }
 
-  // 整数表示
+  // 整数の表示
   const data = {
     "buy-q": c.bq,
     "buy-a": c.ba,
@@ -362,7 +415,7 @@ function refresh() {
     $(id).textContent = fmt(value);
   }
 
-  // 小数第1位表示
+  // PVMの表示
   for (const [id, value] of Object.entries({
     p: c.P,
     v: c.V,
@@ -371,7 +424,7 @@ function refresh() {
     $(id).textContent = fmt1(value);
   }
 
-  // マイナス時の色変更
+  // 利益マイナス時の色
   $("m-tile").classList.toggle(
     "negative",
     c.M !== null && c.M < 0
@@ -382,7 +435,7 @@ function refresh() {
     c.G !== null && c.G < 0
   );
 
-  // 注意メッセージ
+  // 注意書き
   $("notice").classList.toggle(
     "warn",
     c.M !== null && c.M <= 0
@@ -390,14 +443,14 @@ function refresh() {
 
   $("notice").textContent =
     c.M !== null && c.M <= 0
-      ? "Mが0以下のため損益分岐点と目標達成Qを算出できません。"
-      : "現在のP・V・Mが今後も継続する前提の計画値です。丸めにより実績Gとわずかな差が出る場合があります。";
+      ? "Mが0以下のため損益分岐点・目標達成Qを算出できません。"
+      : "現在のP・V・Mが今後も継続する前提の計画値です。";
 
   save();
 }
 
 // ======================================
-// イベント設定・起動
+// 起動・イベント登録
 // ======================================
 
 load();
@@ -436,20 +489,22 @@ for (const [id, key] of [
   el.addEventListener("input", () => {
     state[key] = el.value;
 
+    const value = key === "fixed"
+      ? number(el.value)
+      : signedNumber(el.value);
+
     el.classList.toggle(
       "invalid",
-      (key === "fixed"
-        ? number(el.value)
-        : signedNumber(el.value)) === null
+      value === null
     );
 
     refresh();
   });
 }
 
-// 初期化
+// 初期値に戻す
 $("reset").addEventListener("click", () => {
-  if (!confirm("入力内容を初期化しますか？")) {
+  if (!confirm("入力内容を初期値に戻しますか？")) {
     return;
   }
 
@@ -459,31 +514,11 @@ $("reset").addEventListener("click", () => {
   $("fixed").value = state.fixed;
   $("goal").value = state.goal;
 
+  $("fixed").classList.remove("invalid");
+  $("goal").classList.remove("invalid");
+
   renderRows();
   refresh();
-});
-
-// JSONバックアップ
-$("export").addEventListener("click", () => {
-  const backup = {
-    version: "1.9",
-    exportedAt: new Date().toISOString(),
-    data: state
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(backup, null, 2)],
-    { type: "application/json" }
-  );
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = "MG_Dashboard_backup.json";
-  a.click();
-
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
 // 初回表示
