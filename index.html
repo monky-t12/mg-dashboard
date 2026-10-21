@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#13283c">
+  <title>MG 中間決算ダッシュボード</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="app">
+
+    <header class="hero">
+      <div>
+        <small>MG MANAGEMENT GAME</small>
+        <h1>中間決算ダッシュボード</h1>
+        <p>Ver.1.9 — リアルタイム経営分析</p>
+      </div>
+      <span class="pill">中間決算用</span>
+    </header>
+
+    <!-- 1. 実績入力 -->
+    <section class="panel">
+      <h2>1. 実績入力</h2>
+
+      <div class="group-heading">
+        <h3>材料購入</h3>
+        <button id="add-buy" class="outline" type="button">
+          ＋ 行追加
+        </button>
+      </div>
+
+      <div class="entry-head">
+        <span>数量（個）</span>
+        <span>単価（円）</span>
+        <span>金額（円）</span>
+        <span></span>
+      </div>
+
+      <div id="buy-rows" class="entry-list"></div>
+
+      <div class="subtotals">
+        <span>購入数量 <strong id="buy-q">—</strong> 個</span>
+        <span>購入金額 <strong id="buy-a">—</strong> 円</span>
+      </div>
+
+      <hr>
+
+      <div class="group-heading">
+        <h3>販売実績</h3>
+        <button id="add-sell" class="outline" type="button">
+          ＋ 行追加
+        </button>
+      </div>
+
+      <div class="entry-head">
+        <span>数量（個）</span>
+        <span>単価（円）</span>
+        <span>金額（円）</span>
+        <span></span>
+      </div>
+
+      <div id="sell-rows" class="entry-list"></div>
+
+      <div class="subtotals">
+        <span>販売数量 <strong id="sell-q">—</strong> 個</span>
+        <span>売上高 <strong id="sell-a">—</strong> 円</span>
+      </div>
+    </section>
+
+    <!-- 2. 固定費・目標設定 -->
+    <section class="panel">
+      <h2>2. 固定費・目標設定</h2>
+
+      <div class="settings">
+        <label>
+          期末予想F（円）
+          <input id="fixed" type="number"
+                 min="0" step="1" inputmode="numeric">
+        </label>
+
+        <label>
+          目標利益G（円）
+          <input id="goal" type="number"
+                 step="1" inputmode="numeric">
+        </label>
+      </div>
+    </section>
+
+    <!-- 3. PVM・販売Q分析 -->
+    <section class="panel">
+      <h2>3. PVM・販売Q分析</h2>
+
+      <div class="pvm-row">
+        <div class="pvm-diagram">
+          <div class="tile blue">
+            <span>P</span>
+            <strong id="p">—</strong>
+          </div>
+
+          <div class="pvm-split">
+            <div class="tile orange">
+              <span>V</span>
+              <strong id="v">—</strong>
+            </div>
+
+            <div class="tile green" id="m-tile">
+              <span>M</span>
+              <strong id="m">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="quantity-card">
+          <span>販売数量 Q</span>
+          <div><strong id="q">—</strong> 個</div>
+          <small>現在の累計販売数量</small>
+        </div>
+      </div>
+
+      <p class="formula">P = V + M</p>
+    </section>
+
+    <!-- 4. MG会計恒等式 -->
+    <section class="panel">
+      <h2>4. MG会計恒等式</h2>
+
+      <div class="equation-diagram">
+        <div class="tile blue pq">
+          <span>PQ</span>
+          <strong id="pq">—</strong>
+        </div>
+
+        <div class="right-diagram">
+          <div class="tile orange vq">
+            <span>VQ</span>
+            <strong id="vq">—</strong>
+          </div>
+
+          <div class="bottom-diagram">
+            <div class="tile green mq">
+              <span>MQ</span>
+              <strong id="mq">—</strong>
+            </div>
+
+            <div class="fg">
+              <div class="tile gray">
+                <span>F</span>
+                <strong id="f">—</strong>
+              </div>
+
+              <div class="tile gain" id="g-tile">
+                <span>G</span>
+                <strong id="g">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="formula">
+        PQ = VQ + MQ = VQ + F + G
+      </p>
+    </section>
+
+    <!-- 5. 損益分岐点・目標達成分析 -->
+    <section class="panel">
+      <h2>5. 損益分岐点・目標達成分析</h2>
+
+      <div class="results">
+        <div class="metric">
+          <span>損益分岐点 Q0</span>
+          <strong id="q0">—</strong>
+          <small>F ÷ M（切り上げ）</small>
+        </div>
+
+        <div class="metric">
+          <span>目標達成Q</span>
+          <strong id="qt">—</strong>
+          <small>(F + 目標G) ÷ M（切り上げ）</small>
+        </div>
+
+        <div class="metric highlight">
+          <span>損益分岐点まであと</span>
+          <div><strong id="q0-left">—</strong> 個</div>
+        </div>
+
+        <div class="metric highlight goal">
+          <span>目標Gまであと</span>
+          <div><strong id="qt-left">—</strong> 個</div>
+        </div>
+      </div>
+
+      <p class="notice" id="notice">
+        現在のP・V・Mが継続する前提の計画値です。
+      </p>
+    </section>
+
+    <!-- データ管理 -->
+    <footer>
+      <span id="save-status" aria-live="polite">
+        ブラウザ内に自動保存します
+      </span>
+
+      <div class="actions">
+        <button id="export" type="button" class="outline">
+          JSONバックアップ
+        </button>
+
+        <button id="reset" type="button" class="danger">
+          入力を初期化
+        </button>
+      </div>
+
+      <p>
+        保存はこのブラウザ・この端末内のみです。
+        端末間同期には対応していません。
+      </p>
+    </footer>
+
+  </main>
+</body>
+</html>
