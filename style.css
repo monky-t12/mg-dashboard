@@ -564,3 +564,74 @@ footer p {
     font-size: .85rem;
   }
 }
+
+/* =====================================
+   Ver.2.0 デザイン修正
+   ===================================== */
+
+/* V・VQを緑、M・MQをオレンジに変更 */
+.green {
+  background: #299576;
+  color: #fff;
+}
+
+.orange {
+  background: #d99036;
+  color: #39240c;
+}
+
+/* 実績入力の金額表示 */
+.entry-row .amount {
+  align-self: start;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  height: 43px;
+  min-width: 0;
+  padding: 0 8px;
+
+  background: #eef3f7;
+  border: 1px solid #cbd5df;
+  border-radius: 9px;
+
+  color: #1b2e41;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* 数値ボタンを含む明細行は上揃え */
+.entry-row {
+  align-items: start;
+}
+
+/* 削除ボタンを入力欄の高さに合わせる */
+.entry-row .remove {
+  align-self: start;
+  height: 43px;
+}
+
+/* Q0・目標達成Qのカードを中央揃え */
+.results .metric:nth-child(1),
+.results .metric:nth-child(2) {
+  align-items: center;
+  text-align: center;
+}
+
+/* スマートフォン対応 */
+@media (max-width: 520px) {
+  .entry-row {
+    align-items: start;
+  }
+
+  .entry-row .amount {
+    height: 42px;
+    padding: 0 5px;
+    font-size: .85rem;
+  }
+
+  .entry-row .remove {
+    height: 42px;
+  }
+}

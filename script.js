@@ -435,17 +435,6 @@ function refresh() {
     c.G !== null && c.G < 0
   );
 
-  // 注意書き
-  $("notice").classList.toggle(
-    "warn",
-    c.M !== null && c.M <= 0
-  );
-
-  $("notice").textContent =
-    c.M !== null && c.M <= 0
-      ? "Mが0以下のため損益分岐点・目標達成Qを算出できません。"
-      : "現在のP・V・Mが今後も継続する前提の計画値です。";
-
   save();
 }
 
