@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>MG 固定費Fシミュレーター</title>
+  <link rel="stylesheet" href="./f-simulator.css">
+  <script src="./f-simulator.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="page-head">
+      <div><p class="eyebrow">MANAGEMENT GAME / PLANNING</p><h1>MG 固定費Fシミュレーター</h1><p class="subtitle">経営計画用・予想固定費の算出</p></div>
+      <span class="version">Ver.1.0</span>
+    </header>
+
+    <section class="panel" aria-labelledby="basic-title">
+      <h2 id="basic-title">基本設定</h2>
+      <div class="settings-grid">
+        <label class="field"><span>対象期</span><select id="period"><option value="2">第2期</option><option value="3" selected>第3期</option><option value="4">第4期</option><option value="5">第5期</option></select></label>
+        <div class="field"><span>適用ルール</span><div class="segments" id="rule-segments" role="group" aria-label="適用ルール"><button type="button" data-rule="junior">ジュニア</button><button type="button" data-rule="senior">シニア</button></div></div>
+        <div class="field wide"><span>インフレ倍率</span><div class="segments" id="inflation-segments" role="group" aria-label="インフレ倍率"><button type="button" data-inflation="1">×1.0</button><button type="button" data-inflation="1.1">×1.1</button><button type="button" data-inflation="1.2">×1.2</button></div></div>
+      </div>
+      <div class="stat-grid"><div class="stat"><span>基準単価</span><strong id="base-unit">―</strong></div><div class="stat"><span>期中最大人員単価</span><strong id="peak-unit">―</strong></div></div>
+    </section>
+
+    <section class="panel" aria-labelledby="people-title"><h2 id="people-title">人員・設備設定</h2><div class="counter-list" id="staff-counters"></div><p class="hint">ワーカー・セールスマンは0.5人単位。アタッチメントは給料の対象外です。</p></section>
+
+    <details class="panel accordion" open><summary><span>① 給料計算</span><span class="summary-right"><output id="salary-summary">―</output><span class="chevron"></span></span></summary><div class="details-content"><div class="table-scroll"><table><thead><tr><th>項目</th><th class="num">人数・台数</th><th class="num">給料</th></tr></thead><tbody id="salary-rows"></tbody></table></div><div class="subtotal"><strong>給料合計</strong><strong id="salary-total">―</strong></div></div></details>
+
+    <details class="panel accordion" open><summary><span>② チップ計算</span><span class="summary-right"><output id="chip-summary">―</output><span class="chevron"></span></span></summary><div class="details-content"><div id="chip-groups"></div><div class="subtotal"><strong>チップ費用合計</strong><strong id="chip-total">―</strong></div></div></details>
+
+    <details class="panel accordion" open><summary><span>③ 支払金利</span><span class="summary-right"><output id="interest-summary">―</output><span class="chevron"></span></span></summary><div class="details-content"><h3>期首借入残高</h3><div class="table-scroll"><table><thead><tr><th>種類</th><th class="num">残高（円）</th><th class="num">金利</th></tr></thead><tbody><tr><td>長期（10%）</td><td><input id="opening-long" type="number" min="0" step="1" value="100" inputmode="numeric" aria-label="期首長期借入残高"></td><td class="num" id="opening-long-fee"></td></tr><tr><td>短期（20%）</td><td><input id="opening-short" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="期首短期借入残高"></td><td class="num" id="opening-short-fee"></td></tr></tbody></table></div><p class="small-subtotal">期首金利小計 <strong id="opening-fee">―</strong></p><h3>期中追加借入</h3><div id="loan-list" class="entry-list"></div><button type="button" id="add-loan" class="add-btn">＋ 借入を追加</button><p class="small-subtotal">期中金利小計 <strong id="added-fee">―</strong></p><div class="subtotal"><strong>支払金利合計</strong><strong id="interest-total">―</strong></div><p class="hint">借入時に金利を支払い、Fに加算します。各借入の金利は四捨五入します。</p></div></details>
+
+    <details class="panel accordion" open><summary><span>④ 減価償却費</span><span class="summary-right"><output id="depreciation-summary">―</output><span class="chevron"></span></span></summary><div class="details-content"><div class="table-scroll"><table><thead><tr><th>設備種類</th><th class="num">台数</th><th class="num">償却費</th></tr></thead><tbody id="depreciation-rows"></tbody></table></div><p class="hint" id="depreciation-note"></p><div class="subtotal"><strong>減価償却費合計</strong><strong id="depreciation-total">―</strong></div></div></details>
+
+    <details class="panel accordion" open><summary><span>⑤ 都度経費</span><span class="summary-right"><output id="expense-summary">―</output><span class="chevron"></span></span></summary><div class="details-content"><h3>期首基本経費（自動計上）</h3><div class="table-scroll"><table><thead><tr><th>項目</th><th>費目</th><th class="num">金額</th></tr></thead><tbody><tr><td>コンピューター</td><td>製造経費</td><td class="num">20円</td></tr><tr><td>保険</td><td>本社経費</td><td class="num">5円</td></tr></tbody></table></div><h3>追加経費</h3><div id="expense-list" class="entry-list"></div><button type="button" id="add-expense" class="add-btn">＋ 経費を追加</button><div class="subtotal"><strong>都度経費合計</strong><strong id="expense-total">―</strong></div></div></details>
+
+    <section class="panel report" aria-labelledby="report-title"><h2 id="report-title">会計表・費目別集計</h2><p class="hint">MG会計表の費目に合わせて自動集計</p><div class="table-scroll"><table><thead><tr><th>費目</th><th class="num">金額</th></tr></thead><tbody id="account-rows"></tbody></table></div><div class="grand-total"><div><span>固定費 F 合計</span><strong id="grand-total">―</strong></div><button type="button" id="copy-f">固定費Fをコピー</button></div><p class="copy-message" id="copy-message" role="status" aria-live="polite"></p></section>
+    <p class="footer-note">※本ツールは予想Fの試算用です。機械売却損・材料や仕掛品の損失・借入元本返済・納税・配当はFに含みません。</p>
+  </main>
+</body>
+</html>
