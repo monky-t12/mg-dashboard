@@ -17,7 +17,7 @@
       <div>
         <small>MG MANAGEMENT GAME</small>
         <h1>中間決算ダッシュボード</h1>
-        <p>Ver.1.9 — リアルタイム経営分析</p>
+        <p>Ver.2.0 — リアルタイム経営分析</p>
       </div>
       <span class="pill">中間決算用</span>
     </header>
@@ -27,7 +27,7 @@
       <h2>1. 実績入力</h2>
 
       <div class="group-heading">
-        <h3>材料購入</h3>
+        <h3>【材料購入】</h3>
         <button id="add-buy" class="outline" type="button">
           ＋ 行追加
         </button>
@@ -43,14 +43,14 @@
       <div id="buy-rows" class="entry-list"></div>
 
       <div class="subtotals">
-        <span>購入数量 <strong id="buy-q">—</strong> 個</span>
-        <span>購入金額 <strong id="buy-a">—</strong> 円</span>
+        <span>合計数量 <strong id="buy-q">—</strong> 個</span>
+        <span>購入合計 <strong id="buy-a">—</strong> 円</span>
       </div>
 
       <hr>
 
       <div class="group-heading">
-        <h3>販売実績</h3>
+        <h3>【販売実績】</h3>
         <button id="add-sell" class="outline" type="button">
           ＋ 行追加
         </button>
@@ -66,8 +66,8 @@
       <div id="sell-rows" class="entry-list"></div>
 
       <div class="subtotals">
-        <span>販売数量 <strong id="sell-q">—</strong> 個</span>
-        <span>売上高 <strong id="sell-a">—</strong> 円</span>
+        <span>合計数量 <strong id="sell-q">—</strong> 個</span>
+        <span>売上合計 <strong id="sell-a">—</strong> 円</span>
       </div>
     </section>
 
@@ -77,7 +77,7 @@
 
       <div class="settings">
         <label>
-          期末予想F（円）
+          予想F（円）
           <input id="fixed" type="number"
                  min="0" step="1" inputmode="numeric">
         </label>
@@ -92,7 +92,7 @@
 
     <!-- 3. PVM・販売Q分析 -->
     <section class="panel">
-      <h2>3. PVM・販売Q分析</h2>
+      <h2>3. P・V・M分析</h2>
 
       <div class="pvm-row">
         <div class="pvm-diagram">
@@ -102,12 +102,12 @@
           </div>
 
           <div class="pvm-split">
-            <div class="tile orange">
+            <div class="tile green">
               <span>V</span>
               <strong id="v">—</strong>
             </div>
 
-            <div class="tile green" id="m-tile">
+            <div class="tile orange" id="m-tile">
               <span>M</span>
               <strong id="m">—</strong>
             </div>
@@ -117,16 +117,16 @@
         <div class="quantity-card">
           <span>販売数量 Q</span>
           <div><strong id="q">—</strong> 個</div>
-          <small>現在の累計販売数量</small>
+          <small>現在までの累計販売数量</small>
         </div>
       </div>
 
-      <p class="formula">P = V + M</p>
+      <p class="formula">M = P - V</p>
     </section>
 
-    <!-- 4. MG会計恒等式 -->
+    <!-- 4. MQ会計恒等式 -->
     <section class="panel">
-      <h2>4. MG会計恒等式</h2>
+      <h2>4. MQ会計恒等式</h2>
 
       <div class="equation-diagram">
         <div class="tile blue pq">
@@ -135,13 +135,13 @@
         </div>
 
         <div class="right-diagram">
-          <div class="tile orange vq">
+          <div class="tile green vq">
             <span>VQ</span>
             <strong id="vq">—</strong>
           </div>
 
           <div class="bottom-diagram">
-            <div class="tile green mq">
+            <div class="tile orange mq">
               <span>MQ</span>
               <strong id="mq">—</strong>
             </div>
@@ -162,7 +162,7 @@
       </div>
 
       <p class="formula">
-        PQ = VQ + MQ = VQ + F + G
+        PQ = VQ + F + G
       </p>
     </section>
 
@@ -174,13 +174,13 @@
         <div class="metric">
           <span>損益分岐点 Q0</span>
           <strong id="q0">—</strong>
-          <small>F ÷ M（切り上げ）</small>
+          <small>F ÷ M</small>
         </div>
 
         <div class="metric">
           <span>目標達成Q</span>
           <strong id="qt">—</strong>
-          <small>(F + 目標G) ÷ M（切り上げ）</small>
+          <small>(F + 目標G) ÷ M</small>
         </div>
 
         <div class="metric highlight">
@@ -194,9 +194,6 @@
         </div>
       </div>
 
-      <p class="notice" id="notice">
-        現在のP・V・Mが継続する前提の計画値です。
-      </p>
     </section>
 
     <!-- データ管理 -->
@@ -210,11 +207,6 @@
         ↺ 初期値に戻す
         </button>
     </div>
-
-    <p>
-        入力内容はこのブラウザ内に自動保存されます。
-        他の端末との同期には対応していません。
-    </p>
     </footer>
 
   </main>
